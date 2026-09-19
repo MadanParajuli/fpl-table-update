@@ -1,0 +1,24 @@
+:host { display: block; }
+
+.topbar {
+  align-items: center;
+  background: var(--ink);
+  color: #fff;
+  display: flex;
+  min-height: 72px;
+  padding: 0 clamp(1.25rem, 5vw, 4.5rem);
+}
+
+.brand, .nav-link { color: inherit; text-decoration: none; }
+.brand { align-items: center; display: flex; font: 700 1.1rem Georgia, serif; gap: .65rem; letter-spacing: .01em; }
+.brand-mark { align-items: center; background: var(--coral); display: inline-flex; font: 800 .64rem Arial, sans-serif; height: 25px; justify-content: center; letter-spacing: .1em; width: 38px; }
+nav { align-self: stretch; display: flex; gap: 1.7rem; margin-left: 3.5rem; }
+.nav-link { align-items: center; color: #aeb9bd; display: flex; font: 700 .68rem Arial, sans-serif; letter-spacing: .1em; position: relative; text-transform: uppercase; }
+.nav-link::after { background: var(--coral); bottom: 0; content: ''; height: 3px; left: 0; position: absolute; right: 0; transform: scaleX(0); transition: transform .2s ease; }
+.nav-link:hover, .nav-link.active { color: #fff; }
+.nav-link.active::after { transform: scaleX(1); }
+.account { align-items: center; color: #b5c0c3; display: flex; font: .68rem Arial, sans-serif; gap: .6rem; margin-left: auto; }
+.status-dot { background: var(--mint); border-radius: 50%; box-shadow: 0 0 0 4px rgba(78, 170, 130, .14); height: 7px; width: 7px; }
+.avatar { align-items: center; background: #2a3941; border: 1px solid #52636b; border-radius: 50%; color: #fff; display: inline-flex; font: 700 .65rem Arial, sans-serif; height: 32px; justify-content: center; margin-left: .6rem; text-decoration: none; width: 32px; }
+.avatar:hover { background: var(--coral); border-color: var(--coral); }
+@media (max-width: 560px) { .topbar { flex-wrap: wrap; gap: 1rem; padding-block: 1rem; } nav { align-self: auto; margin-left: auto; } .account > span:not(.status-dot) { display: none; } }

@@ -1,3 +1,37 @@
-/* You can add global styles to this file, and also import other style files */
-
 @import 'tailwindcss';
+
+:root {
+	--ink: #17232b;
+	--ink-soft: #43535d;
+	--muted: #7d898e;
+	--line: #dfe6e4;
+	--paper: #f3f6f4;
+	--surface: #ffffff;
+	--coral: #e76759;
+	--coral-dark: #c95045;
+	--mint: #4eaa82;
+	--gold: #c79542;
+	--shadow: 0 18px 50px rgba(23, 35, 43, .07);
+}
+
+html { background: var(--paper); }
+body { color: var(--ink); margin: 0; }
+button, input { font: inherit; }
+
+.balance-table-wrap { max-width: 100%; overflow-x: hidden !important; }
+.balance-table { min-width: 0 !important; max-width: 100%; table-layout: fixed; width: 100% !important; }
+.balance-table .manager-col { left: auto; max-width: none; min-width: 0; position: static; }
+.balance-table .total-col { position: static; }
+.balance-table th, .balance-table td { overflow-wrap: anywhere; padding: .55rem .35rem; white-space: normal; }
+.balance-table th { font-size: .55rem; }
+.balance-table td { font-size: .68rem; }
+.balance-table th:first-child, .balance-table td:first-child { width: 28%; }
+.balance-table th:not(:first-child), .balance-table td:not(:first-child) { width: 14.4%; }
+.balance-table .current-winner td { background: #eaf7ef; border-top-color: #b9e1c9; color: #1f6848; font-weight: 700; }
+.balance-table .current-winner .manager-col { border-left: 4px solid var(--mint); }
+.balance-table .current-winner .winning-cell { color: #187447; font-weight: 800; }
+@media (max-width: 520px) {
+	.balance-table th, .balance-table td { padding: .45rem .2rem; }
+	.balance-table th { font-size: .48rem; }
+	.balance-table td { font-size: .6rem; }
+}
