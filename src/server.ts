@@ -12,6 +12,66 @@ const browserDistFolder = join(import.meta.dirname, '../browser');
 const app = express();
 const angularApp = new AngularNodeAppEngine();
 
+const fplApiBase = 'https://fantasy.premierleague.com/api';
+
+async function proxyFplJson(path: string, res: express.Response): Promise<void> {
+  try {
+    const response = await fetch(`${fplApiBase}${path}`, {
+      headers: { Accept: 'application/json' },
+      signal: AbortSignal.timeout(10000),
+    });
+    const body = await response.text();
+    res.status(response.status).type('application/json').send(body);
+  } catch {
+    res.status(502).json({ error: 'FPL API is unavailable.' });
+  }
+}
+
+function numericParam(value: string): number | null {
+  const parsed = Number(value);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
+}
+
+app.get('/api/entry/:managerId', async (req, res) => {
+  const managerId = numericParam(req.params['managerId']);
+  if (!managerId) { res.status(400).json({ error: 'Invalid manager ID.' }); return; }
+  await proxyFplJson(`/entry/${managerId}/`, res);
+});
+
+app.get('/api/entry/:managerId/leagues', async (req, res) => {
+  const managerId = numericParam(req.params['managerId']);
+  if (!managerId) { res.status(400).json({ error: 'Invalid manager ID.' }); return; }
+  try {
+    const response = await fetch(`${fplApiBase}/entry/${managerId}/`, {
+      headers: { Accept: 'application/json' },
+      signal: AbortSignal.timeout(10000),
+    });
+    const manager = await response.json() as { leagues?: { classic?: unknown[]; h2h?: unknown[]; cup?: unknown } };
+    res.status(response.status).json({
+      classic: manager.leagues?.classic ?? [],
+      h2h: manager.leagues?.h2h ?? [],
+      cup: manager.leagues?.cup ?? null,
+    });
+  } catch {
+    res.status(502).json({ error: 'FPL API is unavailable.' });
+  }
+});
+
+app.get('/api/entry/:managerId/history', async (req, res) => {
+  const managerId = numericParam(req.params['managerId']);
+  if (!managerId) { res.status(400).json({ error: 'Invalid manager ID.' }); return; }
+  await proxyFplJson(`/entry/${managerId}/history/`, res);
+});
+
+app.get('/api/leagues-classic/:leagueId/standings', async (req, res) => {
+  const leagueId = numericParam(req.params['leagueId']);
+  if (!leagueId) { res.status(400).json({ error: 'Invalid league ID.' }); return; }
+  await proxyFplJson(`/leagues-classic/${leagueId}/standings/`, res);
+});
+
+app.get('/api/bootstrap-static', async (_req, res) => proxyFplJson('/bootstrap-static/', res));
+app.get('/api/fixtures', async (_req, res) => proxyFplJson('/fixtures/', res));
+
 /**
  * Example Express Rest API endpoints can be defined here.
  * Uncomment and define endpoints as necessary.

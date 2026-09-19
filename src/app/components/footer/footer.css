@@ -1,0 +1,8 @@
+:host { display: block; }
+.footer { align-items: center; background: var(--ink); color: #fff; display: flex; gap: 2rem; justify-content: space-between; padding: 1.15rem clamp(1.25rem, 5vw, 4.5rem); }
+.footer-brand { align-items: center; display: flex; font: 700 .88rem Georgia, serif; gap: .55rem; }
+.brand-mark { align-items: center; background: var(--coral); display: inline-flex; font: 800 .62rem Arial, sans-serif; height: 24px; justify-content: center; letter-spacing: .1em; width: 36px; }
+.footer p { color: #aeb9bd; font: .66rem Arial, sans-serif; margin: 0; }
+.footer-live { background: var(--mint); border-radius: 50%; display: inline-block; height: 7px; margin-right: .35rem; width: 7px; }
+.footer-note { opacity: .65; }
+@media (max-width: 700px) { .footer { align-items: flex-start; flex-direction: column; gap: .6rem; } }
