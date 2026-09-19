@@ -97,12 +97,19 @@ export class DashboardComponent implements OnInit {
   private loadHistories(standings: FplStanding[]): void {
     if (!standings.length) { this.loading.set(false); return; }
     forkJoin(standings.map((standing) => this.api.getManagerHistory(standing.entry).pipe(catchError(() => of({ current: [] } as FplHistory))))).subscribe((histories) => {
-      this.rows.set(standings.map((standing, index) => ({ ...standing, weeklyPoints: this.toWeeklyPoints(histories[index]) })));
+      const currentEvent = this.currentEvent();
+      this.rows.set(standings.map((standing, index) => ({
+        ...standing,
+        weeklyPoints: this.toWeeklyPoints(histories[index], currentEvent, standing.event_total),
+      })));
       this.loading.set(false);
     });
   }
 
-  private toWeeklyPoints(history: FplHistory): Record<number, number> {
-    return Object.fromEntries((history.current ?? []).map((event) => [event.event, event.points]));
+  private toWeeklyPoints(history: FplHistory, currentEvent: number, currentPoints: number): Record<number, number> {
+    return {
+      ...Object.fromEntries((history.current ?? []).map((event) => [event.event, event.points])),
+      ...(currentEvent ? { [currentEvent]: currentPoints } : {}),
+    };
   }
 }
