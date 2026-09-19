@@ -63,6 +63,13 @@ app.get('/api/entry/:managerId/history', async (req, res) => {
   await proxyFplJson(`/entry/${managerId}/history/`, res);
 });
 
+app.get('/api/entry/:managerId/event/:event/picks', async (req, res) => {
+  const managerId = numericParam(req.params['managerId']);
+  const event = numericParam(req.params['event']);
+  if (!managerId || !event) { res.status(400).json({ error: 'Invalid manager or event ID.' }); return; }
+  await proxyFplJson(`/entry/${managerId}/event/${event}/picks/`, res);
+});
+
 app.get('/api/leagues-classic/:leagueId/standings', async (req, res) => {
   const leagueId = numericParam(req.params['leagueId']);
   if (!leagueId) { res.status(400).json({ error: 'Invalid league ID.' }); return; }
@@ -70,6 +77,11 @@ app.get('/api/leagues-classic/:leagueId/standings', async (req, res) => {
 });
 
 app.get('/api/bootstrap-static', async (_req, res) => proxyFplJson('/bootstrap-static/', res));
+app.get('/api/event/:event/live', async (req, res) => {
+  const event = numericParam(req.params['event']);
+  if (!event) { res.status(400).json({ error: 'Invalid event ID.' }); return; }
+  await proxyFplJson(`/event/${event}/live/`, res);
+});
 app.get('/api/fixtures', async (_req, res) => proxyFplJson('/fixtures/', res));
 
 /**
