@@ -1,7 +1,10 @@
 <header class="topbar">
-  <a class="brand" routerLink="/home" aria-label="FPL Central home"><span class="brand-mark">FPL</span><span>Central</span></a>
+  <a class="brand" routerLink="/home" aria-label="FPL Central home"><span
+      class="brand-mark">FPL</span><span>Central</span></a>
   <nav aria-label="Primary navigation">
-    <a class="nav-link" routerLink="/home" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">My leagues</a>
+    <a class="nav-link" routerLink="/home" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">My
+      leagues</a>
   </nav>
-  <div class="account"><span class="status-dot"></span><span>Gameweek {{ gameweek() }}</span><a class="avatar" routerLink="/login" aria-label="Open account connection">{{ initials() }}</a></div>
+  <div class="account"><span class="status-dot"></span><span>Gameweek {{ gameweek() }}</span><a class="avatar"
+      routerLink="/login" aria-label="Open account connection">{{ initials() }}</a></div>
 </header>

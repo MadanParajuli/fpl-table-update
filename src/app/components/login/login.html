@@ -1,16 +1,32 @@
 <main class="login-page">
   <section class="login-card">
-    <div class="login-topline"><div class="login-brand"><span class="brand-mark">FPL</span><span>Central</span></div><span class="step-count">01 / 01</span></div>
-    <div class="login-intro"><p class="eyebrow">Manager access</p><h1>Your leagues,<br><em>in one place.</em></h1><p class="lead">Start with your FPL Manager ID. We will bring in your joined leagues and current season details.</p></div>
+    <div class="login-topline">
+      <div class="login-brand"><span class="brand-mark">FPL</span><span>Central</span></div><span class="step-count">01
+        / 01</span>
+    </div>
+    <div class="login-intro">
+      <p class="eyebrow">Manager access</p>
+      <h1>Your leagues,<br><em>in one place.</em></h1>
+      <p class="lead">Start with your FPL Manager ID. We will bring in your joined leagues and current season details.
+      </p>
+    </div>
     <div class="form-panel">
-      <div class="form-heading"><span class="field-index">01</span><div><strong>Connect a manager</strong><small>Use the ID from your FPL profile</small></div></div>
+      <div class="form-heading"><span class="field-index">01</span>
+        <div><strong>Connect a manager</strong><small>Use the ID from your FPL profile</small></div>
+      </div>
       <form (ngSubmit)="connectManager()" #managerForm="ngForm">
         <label for="manager-id">Manager ID</label>
-        <div class="id-row"><input id="manager-id" name="managerId" type="text" inputmode="numeric" autocomplete="off" placeholder="3296740" [(ngModel)]="managerId" required><button type="submit" [disabled]="managerForm.invalid || loading()">{{ loading() ? 'Loading...' : 'Continue' }} <span>&gt;</span></button></div>
+        <div class="id-row"><input id="manager-id" name="managerId" type="text" inputmode="numeric" autocomplete="off"
+            placeholder="3296740" [(ngModel)]="managerId" required><button type="submit"
+            [disabled]="managerForm.invalid || loading()">{{ loading() ? 'Loading...' : 'Continue' }}
+            <span>&gt;</span></button></div>
         @if (error()) { <p class="error" role="alert">{{ error() }}</p> }
       </form>
     </div>
-    <div class="help-note"><span>?</span><p>Find it in your FPL profile URL:<br><strong>fantasy.premierleague.com/entry/<em>your-id</em>/</strong></p></div>
-    <div class="login-footer"><span class="data-dot"></span><span>Public FPL data only</span><span class="footer-rule"></span><span>No password required</span></div>
+    <div class="help-note"><span>?</span>
+      <p>Find it in your FPL profile URL:<br><strong>fantasy.premierleague.com/entry/<em>your-id</em>/</strong></p>
+    </div>
+    <div class="login-footer"><span class="data-dot"></span><span>Public FPL data only</span><span
+        class="footer-rule"></span><span>No password required</span></div>
   </section>
 </main>

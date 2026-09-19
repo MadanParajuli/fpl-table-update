@@ -38,7 +38,10 @@ export class FplLeagueExportService {
     );
 
     const presentWeek = currentEvent || availableWeeks.at(-1) || 1;
-    const previousWeeks = availableWeeks.filter(
+    const playedWeeks = availableWeeks.filter(
+      (week) => week <= presentWeek
+    );
+    const previousWeeks = playedWeeks.filter(
       (week) => week < presentWeek
     );
 
@@ -89,7 +92,7 @@ export class FplLeagueExportService {
 
     return {
       presentWeek,
-      reservedBalance: availableWeeks.length * ENTRY_FEE,
+      reservedBalance: playedWeeks.length * ENTRY_FEE,
 
       rows: rows.map((row) => {
         const currentBalance = -ENTRY_FEE;
