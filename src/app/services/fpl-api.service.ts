@@ -9,6 +9,10 @@ export interface FplStanding { entry: number; entry_name: string; event_total: n
 export interface FplLeagueStandings { league: FplLeague; standings: { has_next: boolean; page: number; results: FplStanding[]; }; last_updated_data: string; }
 export interface FplHistoryEvent { event: number; points: number; total_points: number; }
 export interface FplHistory { current: FplHistoryEvent[]; }
+export interface FplPick { element: number; position: number; multiplier: number; }
+export interface FplManagerPicks { picks: FplPick[]; }
+export interface FplLiveElement { id: number; stats: { total_points: number; }; }
+export interface FplLiveEvent { elements: FplLiveElement[]; }
 @Injectable({ providedIn: 'root' })
 export class FplApiService {
   private readonly http = inject(HttpClient);
@@ -17,5 +21,7 @@ export class FplApiService {
   getManager(managerId: number): Observable<FplManager> { return this.http.get<FplManager>(`${this.apiBase}/entry/${managerId}/`); }
   getLeagueStandings(leagueId: number): Observable<FplLeagueStandings> { return this.http.get<FplLeagueStandings>(`${this.apiBase}/leagues-classic/${leagueId}/standings/`); }
   getManagerHistory(managerId: number): Observable<FplHistory> { return this.http.get<FplHistory>(`${this.apiBase}/entry/${managerId}/history/`); }
+  getManagerPicks(managerId: number, event: number): Observable<FplManagerPicks> { return this.http.get<FplManagerPicks>(`${this.apiBase}/entry/${managerId}/event/${event}/picks/`); }
+  getLiveEvent(event: number): Observable<FplLiveEvent> { return this.http.get<FplLiveEvent>(`${this.apiBase}/event/${event}/live/`); }
   getFixtures(): Observable<unknown[]> { return this.http.get<unknown[]>(`${this.apiBase}/fixtures/`); }
 }

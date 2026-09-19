@@ -3,7 +3,7 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { FplApiService, FplHistory, FplLeague, FplManager, FplStanding } from '../../services/fpl-api.service';
+import { FplApiService, FplHistory, FplLeague, FplLiveEvent, FplManager, FplManagerPicks, FplStanding } from '../../services/fpl-api.service';
 import { FplAuthService } from '../../services/fpl-auth.service';
 import { BalanceSheet, FplLeagueExportService } from '../../services/fpl-league-export.service';
 
@@ -96,14 +96,30 @@ export class DashboardComponent implements OnInit {
 
   private loadHistories(standings: FplStanding[]): void {
     if (!standings.length) { this.loading.set(false); return; }
-    forkJoin(standings.map((standing) => this.api.getManagerHistory(standing.entry).pipe(catchError(() => of({ current: [] } as FplHistory))))).subscribe((histories) => {
-      const currentEvent = this.currentEvent();
+    const currentEvent = this.currentEvent();
+    forkJoin({
+      histories: forkJoin(standings.map((standing) => this.api.getManagerHistory(standing.entry).pipe(catchError(() => of({ current: [] } as FplHistory))))),
+      picks: forkJoin(standings.map((standing) => this.api.getManagerPicks(standing.entry, currentEvent).pipe(catchError(() => of(null as FplManagerPicks | null))))),
+      live: this.api.getLiveEvent(currentEvent).pipe(catchError(() => of(null as FplLiveEvent | null))),
+    }).subscribe(({ histories, picks, live }) => {
+      const livePoints = this.toLivePoints(live);
       this.rows.set(standings.map((standing, index) => ({
         ...standing,
-        weeklyPoints: this.toWeeklyPoints(histories[index], currentEvent, standing.event_total),
+        weeklyPoints: this.toWeeklyPoints(histories[index], currentEvent, this.currentPoints(picks[index], livePoints, standing.event_total)),
       })));
       this.loading.set(false);
     });
+  }
+
+  private currentPoints(picks: FplManagerPicks | null, livePoints: Map<number, number>, fallback: number): number {
+    if (!picks) return fallback;
+    return picks.picks
+      .filter((pick) => pick.position <= 11)
+      .reduce((total, pick) => total + (livePoints.get(pick.element) ?? 0) * pick.multiplier, 0);
+  }
+
+  private toLivePoints(live: FplLiveEvent | null): Map<number, number> {
+    return new Map((live?.elements ?? []).map((element) => [element.id, element.stats.total_points]));
   }
 
   private toWeeklyPoints(history: FplHistory, currentEvent: number, currentPoints: number): Record<number, number> {
