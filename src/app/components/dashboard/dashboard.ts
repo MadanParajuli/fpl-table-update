@@ -1,13 +1,30 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject, signal } from '@angular/core';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import {
+  ActivatedRoute,
+  Router,
+  RouterLink,
+} from '@angular/router';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { FplApiService, FplHistory, FplLeague, FplLiveEvent, FplManager, FplManagerPicks, FplStanding } from '../../services/fpl-api.service';
+import {
+  FplApiService,
+  FplHistory,
+  FplLeague,
+  FplLiveEvent,
+  FplManager,
+  FplManagerPicks,
+  FplStanding,
+} from '../../services/fpl-api.service';
 import { FplAuthService } from '../../services/fpl-auth.service';
-import { BalanceSheet, FplLeagueExportService } from '../../services/fpl-league-export.service';
+import {
+  BalanceSheet,
+  FplLeagueExportService,
+} from '../../services/fpl-league-export.service';
 
-export interface LeagueTableRow extends FplStanding { weeklyPoints: Record<number, number>; }
+export interface LeagueTableRow extends FplStanding {
+  weeklyPoints: Record<number, number>;
+}
 
 @Component({
   selector: 'app-dashboard',
@@ -22,13 +39,17 @@ export class DashboardComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly exporter = inject(FplLeagueExportService);
+
   readonly leagues = signal<FplLeague[]>([]);
   readonly selectedLeague = signal<FplLeague | null>(null);
   readonly rows = signal<LeagueTableRow[]>([]);
   readonly loading = signal(false);
   readonly error = signal('');
   readonly currentEvent = signal(0);
-  readonly gameweeks = Array.from({ length: 38 }, (_, index) => index + 1);
+  readonly gameweeks = Array.from(
+    { length: 38 },
+    (_, index) => index + 1
+  );
   readonly manager = signal<FplManager | null>(null);
   readonly showBalanceSheet = signal(false);
   readonly balanceSheet = signal<BalanceSheet | null>(null);
@@ -37,9 +58,17 @@ export class DashboardComponent implements OnInit {
     this.route.paramMap.subscribe((params) => {
       const routeManagerId = Number(params.get('managerId'));
       const connectedManager = this.auth.manager();
-      if (Number.isInteger(routeManagerId) && routeManagerId > 0) this.loadManager(routeManagerId);
-      else if (connectedManager) this.loadManagerProfile(connectedManager);
-      else this.router.navigateByUrl('/login');
+
+      if (
+        Number.isInteger(routeManagerId) &&
+        routeManagerId > 0
+      ) {
+        this.loadManager(routeManagerId);
+      } else if (connectedManager) {
+        this.loadManagerProfile(connectedManager);
+      } else {
+        this.router.navigateByUrl('/login');
+      }
     });
   }
 
@@ -50,21 +79,42 @@ export class DashboardComponent implements OnInit {
     this.balanceSheet.set(null);
     this.loading.set(true);
     this.error.set('');
+
     this.api.getLeagueStandings(league.id).subscribe({
-      next: (response) => this.loadHistories(response.standings.results),
-      error: () => { this.loading.set(false); this.error.set('This league table could not be loaded from FPL.'); },
+      next: (response) =>
+        this.loadHistories(response.standings.results),
+
+      error: () => {
+        this.loading.set(false);
+        this.error.set(
+          'This league table could not be loaded from FPL.'
+        );
+      },
     });
   }
 
-  pointsFor(row: LeagueTableRow, event: number): number | null {
+  pointsFor(
+    row: LeagueTableRow,
+    event: number
+  ): number | null {
     return row.weeklyPoints[event] ?? null;
   }
 
-  logout(): void { this.auth.logout(); this.router.navigateByUrl('/login'); }
+  logout(): void {
+    this.auth.logout();
+    this.router.navigateByUrl('/login');
+  }
 
   exportBalanceSheet(): void {
     const league = this.selectedLeague();
-    if (league && this.rows().length) this.exporter.exportLeague(league, this.rows(), this.currentEvent());
+
+    if (league && this.rows().length) {
+      this.exporter.exportLeague(
+        league,
+        this.rows(),
+        this.currentEvent()
+      );
+    }
   }
 
   toggleBalanceSheet(): void {
@@ -72,60 +122,167 @@ export class DashboardComponent implements OnInit {
       this.showBalanceSheet.set(false);
       return;
     }
-    this.balanceSheet.set(this.exporter.createBalanceSheet(this.rows(), this.currentEvent()));
+
+    this.balanceSheet.set(
+      this.exporter.createBalanceSheet(
+        this.rows(),
+        this.currentEvent()
+      )
+    );
+
     this.showBalanceSheet.set(true);
   }
 
   private loadManager(managerId: number): void {
     this.loading.set(true);
     this.error.set('');
+
     this.api.getManager(managerId).subscribe({
-      next: (manager) => this.loadManagerProfile(manager),
-      error: () => { this.loading.set(false); this.error.set('This manager profile could not be loaded from FPL.'); },
+      next: (manager) =>
+        this.loadManagerProfile(manager),
+
+      error: () => {
+        this.loading.set(false);
+        this.error.set(
+          'This manager profile could not be loaded from FPL.'
+        );
+      },
     });
   }
 
-  private loadManagerProfile(manager: FplManager): void {
+  private loadManagerProfile(
+    manager: FplManager
+  ): void {
     this.manager.set(manager);
     this.currentEvent.set(manager.current_event || 0);
+
     const classic = manager.leagues?.classic ?? [];
+
     this.leagues.set(classic);
-    if (classic.length) this.selectLeague(classic[0]);
-    else { this.loading.set(false); this.error.set('No classic leagues were found for this Manager ID.'); }
+
+    if (classic.length) {
+      this.selectLeague(classic[0]);
+    } else {
+      this.loading.set(false);
+      this.error.set(
+        'No classic leagues were found for this Manager ID.'
+      );
+    }
   }
 
-  private loadHistories(standings: FplStanding[]): void {
-    if (!standings.length) { this.loading.set(false); return; }
+  private loadHistories(
+    standings: FplStanding[]
+  ): void {
+    if (!standings.length) {
+      this.loading.set(false);
+      return;
+    }
+
     const currentEvent = this.currentEvent();
+
     forkJoin({
-      histories: forkJoin(standings.map((standing) => this.api.getManagerHistory(standing.entry).pipe(catchError(() => of({ current: [] } as FplHistory))))),
-      picks: forkJoin(standings.map((standing) => this.api.getManagerPicks(standing.entry, currentEvent).pipe(catchError(() => of(null as FplManagerPicks | null))))),
-      live: this.api.getLiveEvent(currentEvent).pipe(catchError(() => of(null as FplLiveEvent | null))),
+      histories: forkJoin(
+        standings.map((standing) =>
+          this.api
+            .getManagerHistory(standing.entry)
+            .pipe(
+              catchError(() =>
+                of({ current: [] } as FplHistory)
+              )
+            )
+        )
+      ),
+
+      picks: forkJoin(
+        standings.map((standing) =>
+          this.api
+            .getManagerPicks(
+              standing.entry,
+              currentEvent
+            )
+            .pipe(
+              catchError(() =>
+                of(null as FplManagerPicks | null)
+              )
+            )
+        )
+      ),
+
+      live: this.api
+        .getLiveEvent(currentEvent)
+        .pipe(
+          catchError(() =>
+            of(null as FplLiveEvent | null)
+          )
+        ),
     }).subscribe(({ histories, picks, live }) => {
       const livePoints = this.toLivePoints(live);
-      this.rows.set(standings.map((standing, index) => ({
-        ...standing,
-        weeklyPoints: this.toWeeklyPoints(histories[index], currentEvent, this.currentPoints(picks[index], livePoints, standing.event_total)),
-      })));
+
+      this.rows.set(
+        standings.map((standing, index) => ({
+          ...standing,
+
+          weeklyPoints: this.toWeeklyPoints(
+            histories[index],
+            currentEvent,
+            this.currentPoints(
+              picks[index],
+              livePoints,
+              standing.event_total
+            )
+          ),
+        }))
+      );
+
       this.loading.set(false);
     });
   }
 
-  private currentPoints(picks: FplManagerPicks | null, livePoints: Map<number, number>, fallback: number): number {
+  private currentPoints(
+    picks: FplManagerPicks | null,
+    livePoints: Map<number, number>,
+    fallback: number
+  ): number {
     if (!picks) return fallback;
+
     return picks.picks
       .filter((pick) => pick.position <= 11)
-      .reduce((total, pick) => total + (livePoints.get(pick.element) ?? 0) * pick.multiplier, 0);
+      .reduce(
+        (total, pick) =>
+          total +
+          (livePoints.get(pick.element) ?? 0) *
+            pick.multiplier,
+        0
+      );
   }
 
-  private toLivePoints(live: FplLiveEvent | null): Map<number, number> {
-    return new Map((live?.elements ?? []).map((element) => [element.id, element.stats.total_points]));
+  private toLivePoints(
+    live: FplLiveEvent | null
+  ): Map<number, number> {
+    return new Map(
+      (live?.elements ?? []).map((element) => [
+        element.id,
+        element.stats.total_points,
+      ])
+    );
   }
 
-  private toWeeklyPoints(history: FplHistory, currentEvent: number, currentPoints: number): Record<number, number> {
+  private toWeeklyPoints(
+    history: FplHistory,
+    currentEvent: number,
+    currentPoints: number
+  ): Record<number, number> {
     return {
-      ...Object.fromEntries((history.current ?? []).map((event) => [event.event, event.points])),
-      ...(currentEvent ? { [currentEvent]: currentPoints } : {}),
+      ...Object.fromEntries(
+        (history.current ?? []).map((event) => [
+          event.event,
+          event.points,
+        ])
+      ),
+
+      ...(currentEvent
+        ? { [currentEvent]: currentPoints }
+        : {}),
     };
   }
 }

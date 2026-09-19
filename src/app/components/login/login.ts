@@ -1,7 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { FplManager } from '../../services/fpl-api.service';
 import { FplAuthService } from '../../services/fpl-auth.service';
 
 @Component({
@@ -21,14 +20,35 @@ export class LoginComponent {
 
   connectManager(): void {
     const id = Number(this.managerId.trim());
-    if (!Number.isInteger(id) || id < 1) { this.error.set('Enter a valid numeric FPL manager ID.'); return; }
-    this.loading.set(true); this.error.set('');
+
+    if (!Number.isInteger(id) || id < 1) {
+      this.error.set(
+        'Enter a valid numeric FPL manager ID.'
+      );
+      return;
+    }
+
+    this.loading.set(true);
+    this.error.set('');
+
     this.auth.connectManager(id).subscribe({
-      next: () => { this.loading.set(false); this.router.navigateByUrl('/home'); },
-      error: () => { this.error.set('FPL could not be reached from this browser. Check the ID or try again later.'); this.loading.set(false); },
+      next: () => {
+        this.loading.set(false);
+        this.router.navigateByUrl('/home');
+      },
+
+      error: () => {
+        this.error.set(
+          'FPL could not be reached from this browser. Check the ID or try again later.'
+        );
+        this.loading.set(false);
+      },
     });
   }
 
-  logout(): void { this.auth.logout(); this.managerId = ''; this.error.set(''); }
-
+  logout(): void {
+    this.auth.logout();
+    this.managerId = '';
+    this.error.set('');
+  }
 }
