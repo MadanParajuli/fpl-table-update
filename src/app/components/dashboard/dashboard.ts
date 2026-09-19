@@ -53,6 +53,7 @@ export class DashboardComponent implements OnInit {
   readonly manager = signal<FplManager | null>(null);
   readonly showBalanceSheet = signal(false);
   readonly balanceSheet = signal<BalanceSheet | null>(null);
+  readonly selectedBalanceWeek = signal(0);
 
   ngOnInit(): void {
     this.route.paramMap.subscribe((params) => {
@@ -77,6 +78,7 @@ export class DashboardComponent implements OnInit {
     this.rows.set([]);
     this.showBalanceSheet.set(false);
     this.balanceSheet.set(null);
+    this.selectedBalanceWeek.set(this.currentEvent());
     this.loading.set(true);
     this.error.set('');
 
@@ -112,9 +114,26 @@ export class DashboardComponent implements OnInit {
       this.exporter.exportLeague(
         league,
         this.rows(),
-        this.currentEvent()
+        this.selectedBalanceWeek()
       );
     }
+  }
+
+  balanceWeeks(): number[] {
+    return this.gameweeks.filter(
+      (week) => week <= this.currentEvent()
+        && this.rows().some((row) => row.weeklyPoints[week] !== undefined)
+    );
+  }
+
+  selectBalanceWeek(event: Event): void {
+    const week = Number((event.target as HTMLSelectElement).value);
+    if (!this.balanceWeeks().includes(week)) return;
+
+    this.selectedBalanceWeek.set(week);
+    this.balanceSheet.set(
+      this.exporter.createBalanceSheet(this.rows(), week)
+    );
   }
 
   toggleBalanceSheet(): void {
@@ -123,12 +142,12 @@ export class DashboardComponent implements OnInit {
       return;
     }
 
-    this.balanceSheet.set(
-      this.exporter.createBalanceSheet(
-        this.rows(),
-        this.currentEvent()
-      )
+    const sheet = this.exporter.createBalanceSheet(
+      this.rows(),
+      this.selectedBalanceWeek() || this.currentEvent()
     );
+    this.balanceSheet.set(sheet);
+    if (sheet) this.selectedBalanceWeek.set(sheet.presentWeek);
 
     this.showBalanceSheet.set(true);
   }
@@ -155,6 +174,7 @@ export class DashboardComponent implements OnInit {
   ): void {
     this.manager.set(manager);
     this.currentEvent.set(manager.current_event || 0);
+    this.selectedBalanceWeek.set(manager.current_event || 0);
 
     const classic = manager.leagues?.classic ?? [];
 

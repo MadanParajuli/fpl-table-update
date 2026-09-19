@@ -1,20 +1,318 @@
 <main class="dashboard">
   @if (manager(); as profile) {
     <section class="dashboard-head">
-      <div><p class="eyebrow">FPL account</p><h1>{{ profile.name }}</h1><p class="subhead">{{ profile.player_first_name }} {{ profile.player_last_name }} <span>Manager ID {{ profile.id }}</span></p></div>
-      <div class="account-stat"><span>Season points</span><strong>{{ profile.summary_overall_points }}</strong><small>Overall rank {{ profile.summary_overall_rank | number }}</small></div>
-      <button class="logout" type="button" (click)="logout()">Change manager</button>
+      <div>
+        <p class="eyebrow">FPL account</p>
+        <h1>{{ profile.name }}</h1>
+        <p class="subhead">
+          {{ profile.player_first_name }} {{ profile.player_last_name }}
+          <span>
+            Manager ID {{ profile.id }}
+          </span>
+        </p>
+      </div>
+
+      <div class="account-stat">
+        <span>Season points</span>
+        <strong>{{ profile.summary_overall_points }}</strong>
+        <small>
+          Overall rank {{ profile.summary_overall_rank | number }}
+        </small>
+      </div>
+
+      <button
+        class="logout"
+        type="button"
+        (click)="logout()"
+      >
+        Change manager
+      </button>
     </section>
+
     <section class="content-grid">
-      <aside class="league-sidebar"><div class="section-title"><div><p class="eyebrow">Joined leagues</p><h2>League room</h2></div><span>{{ leagues().length }}</span></div><p class="sidebar-copy">Choose a league to compare every manager across the season.</p>
-        <div class="league-list">@for (league of leagues(); track league.id) { <button class="league-item" [class.selected]="selectedLeague()?.id === league.id" type="button" (click)="selectLeague(league)"><span class="league-badge">{{ league.name.charAt(0) }}</span><span><strong>{{ league.name }}</strong><small>{{ league.rank_count ? (league.rank_count | number) + ' managers' : 'Classic league' }}</small></span><b>&gt;</b></button> }</div>
+      <aside class="league-sidebar">
+        <div class="section-title">
+          <div>
+            <p class="eyebrow">Joined leagues</p>
+            <h2>League room</h2>
+          </div>
+
+          <span>{{ leagues().length }}</span>
+        </div>
+
+        <p class="sidebar-copy">
+          Choose a league to compare every manager across the season.
+        </p>
+
+        <div class="league-list">
+          @for (league of leagues(); track league.id) {
+            <button
+              class="league-item"
+              [class.selected]="selectedLeague()?.id === league.id"
+              type="button"
+              (click)="selectLeague(league)"
+            >
+              <span class="league-badge">
+                {{ league.name.charAt(0) }}
+              </span>
+
+              <span>
+                <strong>{{ league.name }}</strong>
+                <small>
+                  {{
+                    league.rank_count
+                      ? (league.rank_count | number) + ' managers'
+                      : 'Classic league'
+                  }}
+                </small>
+              </span>
+
+              <b>&gt;</b>
+            </button>
+          }
+        </div>
       </aside>
-      <section class="standings-panel"><div class="standings-head"><div><p class="eyebrow">Classic standings</p><h2>{{ selectedLeague()?.name || 'Select a league' }}</h2></div><div class="standings-actions"><span class="live-label"><i></i> Public FPL data</span><button class="export-button" type="button" (click)="toggleBalanceSheet()" [disabled]="loading() || !rows().length">{{ showBalanceSheet() ? 'Hide balance sheet' : 'View balance sheet' }}</button><button class="export-button" type="button" (click)="exportBalanceSheet()" [disabled]="loading() || !rows().length">Export balance sheet</button></div></div>
-        @if (loading()) { <div class="loading-state"><span></span><p>Loading standings and gameweek history...</p></div> }
-        @if (error()) { <p class="error" role="alert">{{ error() }}</p> }
-        @if (!loading() && !error() && rows().length) { <div class="table-note"><span>Gameweek {{ currentEvent() }} of 38</span><span>Scroll horizontally to see all gameweeks</span></div><div class="table-scroll"><table><thead><tr><th class="sticky rank-col">Rank</th><th class="sticky manager-col">Manager</th>@for (week of gameweeks; track week) { <th [class.current-week]="week === currentEvent()">GW {{ week }}</th> }<th class="total-col">Total</th></tr></thead><tbody>@for (row of rows(); track row.entry) { <tr [class.current-manager]="row.entry === profile.id"><td class="sticky rank-col"><span class="rank">{{ row.rank }}</span></td><td class="sticky manager-col"><a class="manager-link" [routerLink]="['/manager', row.entry]"><strong>{{ row.player_name }}</strong><small>{{ row.entry_name }}</small></a></td>@for (week of gameweeks; track week) { <td [class.current-week]="week === currentEvent()">{{ pointsFor(row, week) ?? '—' }}</td> }<td class="total-col"><strong>{{ row.total }}</strong></td></tr> }</tbody></table></div> }
-        @if (showBalanceSheet() && balanceSheet(); as sheet) { <div class="balance-sheet"><div class="table-note"><span>Balance sheet · Gameweek {{ sheet.presentWeek }}</span><span>Entry fee: $5 · Reserved: ${{ sheet.reservedBalance }}</span></div><div class="table-scroll balance-table-wrap"><table class="balance-table"><thead><tr><th>Manager</th><th>Wins</th><th>Previous</th><th>GW-{{ sheet.presentWeek }}</th><th>Winning</th><th>Total</th></tr></thead><tbody>@for (row of sheet.rows; track row.manager) { <tr [class.current-winner]="row.isCurrentWinner"><td class="manager-col"><strong>{{ row.manager }}</strong></td><td>{{ row.wins }}</td><td>{{ row.previousBalance }}</td><td>{{ row.currentBalance }}</td><td class="winning-cell">{{ row.winningBalance }}</td><td class="total-col"><strong>{{ row.totalBalance }}</strong></td></tr> }<tr><td><strong>Reserved Balance</strong></td><td></td><td></td><td></td><td>{{ sheet.reservedBalance }}</td><td class="total-col"><strong>{{ sheet.reservedBalance }}</strong></td></tr></tbody></table></div></div> }
+
+      <section class="standings-panel">
+        <div class="standings-head">
+          <div>
+            <p class="eyebrow">Classic standings</p>
+            <h2>
+              {{ selectedLeague()?.name || 'Select a league' }}
+            </h2>
+          </div>
+
+          <div class="standings-actions">
+            <span class="live-label">
+              <i></i>
+              Public FPL data
+            </span>
+
+            <button
+              class="export-button"
+              type="button"
+              (click)="toggleBalanceSheet()"
+              [disabled]="loading() || !rows().length"
+            >
+              {{
+                showBalanceSheet()
+                  ? 'Hide balance sheet'
+                  : 'View balance sheet'
+              }}
+            </button>
+
+            <button
+              class="export-button"
+              type="button"
+              (click)="exportBalanceSheet()"
+              [disabled]="loading() || !rows().length"
+            >
+              Export balance sheet
+            </button>
+          </div>
+        </div>
+
+        @if (loading()) {
+          <div class="loading-state">
+            <span></span>
+            <p>Loading standings and gameweek history...</p>
+          </div>
+        }
+
+        @if (error()) {
+          <p class="error" role="alert">
+            {{ error() }}
+          </p>
+        }
+
+        @if (!loading() && !error() && rows().length) {
+          <div class="table-note">
+            <span>
+              Gameweek {{ currentEvent() }} of 38
+            </span>
+
+            <span>
+              Scroll horizontally to see all gameweeks
+            </span>
+          </div>
+
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th class="sticky rank-col">
+                    Rank
+                  </th>
+
+                  <th class="sticky manager-col">
+                    Manager
+                  </th>
+
+                  @for (week of gameweeks; track week) {
+                    <th
+                      [class.current-week]="week === currentEvent()"
+                    >
+                      GW {{ week }}
+                    </th>
+                  }
+
+                  <th class="total-col">
+                    Total
+                  </th>
+                </tr>
+              </thead>
+
+              <tbody>
+                @for (row of rows(); track row.entry) {
+                  <tr
+                    [class.current-manager]="row.entry === profile.id"
+                  >
+                    <td class="sticky rank-col">
+                      <span class="rank">
+                        {{ row.rank }}
+                      </span>
+                    </td>
+
+                    <td class="sticky manager-col">
+                      <a
+                        class="manager-link"
+                        [routerLink]="['/manager', row.entry]"
+                      >
+                        <strong>
+                          {{ row.player_name }}
+                        </strong>
+
+                        <small>
+                          {{ row.entry_name }}
+                        </small>
+                      </a>
+                    </td>
+
+                    @for (week of gameweeks; track week) {
+                      <td
+                        [class.current-week]="week === currentEvent()"
+                      >
+                        {{ pointsFor(row, week) ?? '—' }}
+                      </td>
+                    }
+
+                    <td class="total-col">
+                      <strong>
+                        {{ row.total }}
+                      </strong>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+
+        @if (showBalanceSheet() && balanceSheet(); as sheet) {
+          <div class="balance-sheet">
+            <div class="balance-toolbar">
+              <div class="table-note">
+                <span>
+                  Balance sheet · Gameweek {{ sheet.presentWeek }}
+                </span>
+
+                <span>
+                  Entry fee: $5 · Reserved: ${{ sheet.reservedBalance }}
+                </span>
+              </div>
+
+              <label class="week-picker">
+                View gameweek
+
+                <select (change)="selectBalanceWeek($event)">
+                  @for (week of balanceWeeks(); track week) {
+                    <option
+                      [value]="week"
+                      [selected]="week === sheet.presentWeek"
+                    >
+                      GW {{ week }}
+                    </option>
+                  }
+                </select>
+              </label>
+            </div>
+
+            <div class="table-scroll balance-table-wrap">
+              <table class="balance-table">
+                <thead>
+                  <tr>
+                    <th>Manager</th>
+                    <th>Wins</th>
+                    <th>Previous</th>
+                    <th>GW-{{ sheet.presentWeek }}</th>
+                    <th>Winning</th>
+                    <th>Total</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  @for (row of sheet.rows; track row.manager) {
+                    <tr
+                      [class.current-winner]="row.isCurrentWinner"
+                    >
+                      <td class="manager-col">
+                        <strong>{{ row.manager }}</strong>
+                      </td>
+
+                      <td>
+                        {{ row.wins }}
+                      </td>
+
+                      <td>
+                        {{ row.previousBalance }}
+                      </td>
+
+                      <td>
+                        {{ row.currentBalance }}
+                      </td>
+
+                      <td class="winning-cell">
+                        {{ row.winningBalance }}
+                      </td>
+
+                      <td class="total-col">
+                        <strong>
+                          {{ row.totalBalance }}
+                        </strong>
+                      </td>
+                    </tr>
+                  }
+
+                  <tr>
+                    <td>
+                      <strong>Reserved Balance</strong>
+                    </td>
+
+                    <td></td>
+                    <td></td>
+                    <td></td>
+
+                    <td>
+                      {{ sheet.reservedBalance }}
+                    </td>
+
+                    <td class="total-col">
+                      <strong>
+                        {{ sheet.reservedBalance }}
+                      </strong>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        }
       </section>
     </section>
-  } @else { <div class="empty-state"><h1>Connect your FPL account first.</h1><a routerLink="/login">Enter Manager ID</a></div> }
+  } @else {
+    <div class="empty-state">
+      <h1>Connect your FPL account first.</h1>
+      <a routerLink="/login">Enter Manager ID</a>
+    </div>
+  }
 </main>
