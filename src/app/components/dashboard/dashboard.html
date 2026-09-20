@@ -29,6 +29,19 @@
       </button>
     </section>
 
+    <nav class="dashboard-tabs" aria-label="Dashboard views">
+      <button type="button" [class.active]="activeView() === 'standings'" (click)="setView('standings')">Classic standings</button>
+      <button type="button" [class.active]="activeView() === 'squad'" [disabled]="!squad().length" (click)="setView('squad')">My squad</button>
+    </nav>
+
+    @if (activeView() === 'squad' && squad().length) {
+      <app-team-pitch
+        [starters]="squad().slice(0, 11)"
+        [substitutes]="squad().slice(11)"
+        [gameweek]="currentEvent()"
+        [totalPoints]="squadPoints()"
+      />
+    } @else {
     <section class="content-grid">
       <aside class="league-sidebar">
         <div class="section-title">
@@ -309,6 +322,7 @@
         }
       </section>
     </section>
+    }
   } @else {
     <div class="empty-state">
       <h1>Connect your FPL account first.</h1>

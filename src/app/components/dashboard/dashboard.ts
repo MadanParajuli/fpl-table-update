@@ -9,6 +9,7 @@ import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import {
   FplApiService,
+  BootstrapStatic,
   FplHistory,
   FplLeague,
   FplLiveEvent,
@@ -21,6 +22,10 @@ import {
   BalanceSheet,
   FplLeagueExportService,
 } from '../../services/fpl-league-export.service';
+import {
+  PitchPlayer,
+} from '../team-pitch/team-pitch';
+import { TeamPitchComponent } from '../team-pitch/team-pitch';
 
 export interface LeagueTableRow extends FplStanding {
   weeklyPoints: Record<number, number>;
@@ -29,7 +34,7 @@ export interface LeagueTableRow extends FplStanding {
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, TeamPitchComponent],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css',
 })
@@ -54,6 +59,13 @@ export class DashboardComponent implements OnInit {
   readonly showBalanceSheet = signal(false);
   readonly balanceSheet = signal<BalanceSheet | null>(null);
   readonly selectedBalanceWeek = signal(0);
+  readonly squad = signal<PitchPlayer[]>([]);
+  readonly squadPoints = signal(0);
+  readonly activeView = signal<'standings' | 'squad'>('standings');
+
+  setView(view: 'standings' | 'squad'): void {
+    this.activeView.set(view);
+  }
 
   ngOnInit(): void {
     this.route.paramMap.subscribe((params) => {
@@ -175,6 +187,7 @@ export class DashboardComponent implements OnInit {
     this.manager.set(manager);
     this.currentEvent.set(manager.current_event || 0);
     this.selectedBalanceWeek.set(manager.current_event || 0);
+    this.loadSquad(manager.id);
 
     const classic = manager.leagues?.classic ?? [];
 
@@ -188,6 +201,59 @@ export class DashboardComponent implements OnInit {
         'No classic leagues were found for this Manager ID.'
       );
     }
+  }
+
+  private loadSquad(managerId: number): void {
+    const event = this.currentEvent();
+    if (!event) return;
+
+    forkJoin({
+      picks: this.api.getManagerPicks(managerId, event).pipe(
+        catchError(() => of(null as FplManagerPicks | null))
+      ),
+      bootstrap: this.api.getBootstrap().pipe(
+        catchError(() => of(null as BootstrapStatic | null))
+      ),
+      live: this.api.getLiveEvent(event).pipe(
+        catchError(() => of(null as FplLiveEvent | null))
+      ),
+    }).subscribe(({ picks, bootstrap, live }) => {
+      const livePoints = this.toLivePoints(live);
+      this.squad.set(this.toSquad(picks, bootstrap, livePoints));
+      this.squadPoints.set(this.currentPoints(picks, livePoints, 0));
+    });
+  }
+
+  private toSquad(
+    picks: FplManagerPicks | null,
+    bootstrap: BootstrapStatic | null,
+    livePoints: Map<number, { minutes: number; total_points: number }>
+  ): PitchPlayer[] {
+    if (!picks || !bootstrap) return [];
+
+    const players = new Map(bootstrap.elements.map((player) => [player.id, player]));
+    const teams = new Map(bootstrap.teams.map((team) => [team.id, team]));
+    const positions: Record<number, PitchPlayer['position']> = {
+      1: 'goalkeeper',
+      2: 'defender',
+      3: 'midfielder',
+      4: 'forward',
+    };
+
+    return picks.picks.map((pick) => {
+      const player = players.get(pick.element);
+      const team = player ? teams.get(player.team) : undefined;
+      return {
+        name: player?.web_name ?? `Player ${pick.element}`,
+        club: team?.name ?? 'Unknown club',
+        position: positions[pick.element_type] ?? 'midfielder',
+        badge: team ? `https://resources.premierleague.com/premierleague/badges/70/t${team.code}.png` : '',
+        points: (livePoints.get(pick.element)?.total_points ?? 0)
+          * Math.max(1, pick.multiplier),
+        captain: pick.is_captain,
+        viceCaptain: pick.is_vice_captain,
+      };
+    });
   }
 
   private loadHistories(

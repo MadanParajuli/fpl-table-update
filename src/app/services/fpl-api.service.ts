@@ -39,6 +39,17 @@ export interface BootstrapStatic {
     is_current: boolean;
     is_next: boolean;
   }>;
+  elements: Array<{
+    id: number;
+    web_name: string;
+    team: number;
+    photo: string;
+  }>;
+  teams: Array<{
+    id: number;
+    name: string;
+    code: number;
+  }>;
 }
 
 export interface FplStanding {
