@@ -260,29 +260,96 @@ export class DashboardComponent implements OnInit {
 
   private currentPoints(
     picks: FplManagerPicks | null,
-    livePoints: Map<number, number>,
+    livePoints: Map<number, { minutes: number; total_points: number }>,
     fallback: number
   ): number {
     if (!picks) return fallback;
 
-    return picks.picks
+    const benchBoost = picks.active_chip === 'benchboost'
+      || picks.active_chip === 'bboost';
+    const starters = picks.picks
       .filter((pick) => pick.position <= 11)
-      .reduce(
-        (total, pick) =>
-          total +
-          (livePoints.get(pick.element) ?? 0) *
-            pick.multiplier,
+      .sort((left, right) => left.position - right.position);
+    const bench = picks.picks
+      .filter((pick) => pick.position > 11)
+      .sort((left, right) => left.position - right.position);
+
+    if (benchBoost) {
+      return picks.picks.reduce(
+        (total, pick) => total + this.pickPoints(pick, livePoints, 1),
         0
       );
+    }
+
+    const activeStarters = starters.filter((pick) => this.played(pick, livePoints));
+    const playerTypes = activeStarters.map((pick) => pick.element_type);
+    const selected = [...activeStarters];
+
+    for (const starter of starters.filter((pick) => !this.played(pick, livePoints))) {
+      const replacementIndex = bench.findIndex((candidate) =>
+        this.canReplace(starter, candidate, playerTypes)
+        && this.played(candidate, livePoints)
+      );
+      if (replacementIndex === -1) continue;
+
+      const replacement = bench.splice(replacementIndex, 1)[0];
+      selected.push(replacement);
+      playerTypes.push(replacement.element_type);
+    }
+
+    const captain = starters.find((pick) => pick.is_captain);
+    const viceCaptain = starters.find((pick) => pick.is_vice_captain);
+    const captainAbsent = captain && !this.played(captain, livePoints);
+
+    return selected.reduce((total, pick) => {
+      const multiplier = captainAbsent && viceCaptain?.element === pick.element
+        ? 2
+        : pick.multiplier || 1;
+      return total + this.pickPoints(pick, livePoints, multiplier);
+    }, 0);
+  }
+
+  private played(
+    pick: FplManagerPicks['picks'][number],
+    livePoints: Map<number, { minutes: number; total_points: number }>
+  ): boolean {
+    return (livePoints.get(pick.element)?.minutes ?? 0) > 0;
+  }
+
+  private canReplace(
+    starter: FplManagerPicks['picks'][number],
+    candidate: FplManagerPicks['picks'][number],
+    playerTypes: number[]
+  ): boolean {
+    if (starter.element_type === 1) return candidate.element_type === 1;
+    if (candidate.element_type === 1) return false;
+
+    const counts = playerTypes.reduce<Record<number, number>>((result, type) => {
+      result[type] = (result[type] ?? 0) + 1;
+      return result;
+    }, {});
+    counts[candidate.element_type] = (counts[candidate.element_type] ?? 0) + 1;
+
+    return (counts[2] ?? 0) >= 3
+      && (counts[3] ?? 0) >= 2
+      && (counts[4] ?? 0) >= 1;
+  }
+
+  private pickPoints(
+    pick: FplManagerPicks['picks'][number],
+    livePoints: Map<number, { minutes: number; total_points: number }>,
+    multiplier: number
+  ): number {
+    return (livePoints.get(pick.element)?.total_points ?? 0) * multiplier;
   }
 
   private toLivePoints(
     live: FplLiveEvent | null
-  ): Map<number, number> {
+  ): Map<number, { minutes: number; total_points: number }> {
     return new Map(
       (live?.elements ?? []).map((element) => [
         element.id,
-        element.stats.total_points,
+        element.stats,
       ])
     );
   }

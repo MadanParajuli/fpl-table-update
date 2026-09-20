@@ -77,15 +77,20 @@ export interface FplPick {
   element: number;
   position: number;
   multiplier: number;
+  element_type: number;
+  is_captain: boolean;
+  is_vice_captain: boolean;
 }
 
 export interface FplManagerPicks {
+  active_chip: string | null;
   picks: FplPick[];
 }
 
 export interface FplLiveElement {
   id: number;
   stats: {
+    minutes: number;
     total_points: number;
   };
 }
