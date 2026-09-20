@@ -1,0 +1,47 @@
+<section class="pitch-card">
+  <div class="pitch-heading">
+    <div>
+      <p class="eyebrow">My squad</p>
+      <h2>Gameweek {{ gameweek }}</h2>
+    </div>
+    <div class="pitch-summary"><span>{{ starters.length }} starting · {{ substitutes.length }} bench</span><strong>{{ totalPoints }} <small>GW points</small></strong></div>
+  </div>
+
+  <div class="pitch" aria-label="Fantasy football team formation">
+    <div class="pitch-line forwards">
+      @for (player of starters; track player.name) {
+        @if (player.position === 'forward') {
+          <article class="player"><img [src]="player.badge" [alt]="player.club + ' badge'" loading="lazy"><strong>{{ player.name }}</strong><small>{{ player.club }}</small><b class="points">{{ player.points }} pts</b>@if (player.captain) { <b class="marker">C</b> } @else if (player.viceCaptain) { <b class="marker">V</b> }</article>
+        }
+      }
+    </div>
+    <div class="pitch-line midfielders">
+      @for (player of starters; track player.name) {
+        @if (player.position === 'midfielder') {
+          <article class="player"><img [src]="player.badge" [alt]="player.club + ' badge'" loading="lazy"><strong>{{ player.name }}</strong><small>{{ player.club }}</small><b class="points">{{ player.points }} pts</b>@if (player.captain) { <b class="marker">C</b> } @else if (player.viceCaptain) { <b class="marker">V</b> }</article>
+        }
+      }
+    </div>
+    <div class="pitch-line defenders">
+      @for (player of starters; track player.name) {
+        @if (player.position === 'defender') {
+          <article class="player"><img [src]="player.badge" [alt]="player.club + ' badge'" loading="lazy"><strong>{{ player.name }}</strong><small>{{ player.club }}</small><b class="points">{{ player.points }} pts</b>@if (player.captain) { <b class="marker">C</b> } @else if (player.viceCaptain) { <b class="marker">V</b> }</article>
+        }
+      }
+    </div>
+    <div class="pitch-line goalkeeper">
+      @for (player of starters; track player.name) {
+        @if (player.position === 'goalkeeper') {
+          <article class="player"><img [src]="player.badge" [alt]="player.club + ' badge'" loading="lazy"><strong>{{ player.name }}</strong><small>{{ player.club }}</small><b class="points">{{ player.points }} pts</b>@if (player.captain) { <b class="marker">C</b> } @else if (player.viceCaptain) { <b class="marker">V</b> }</article>
+        }
+      }
+    </div>
+  </div>
+
+  <div class="bench-heading"><span>Substitutes</span><i></i></div>
+  <div class="bench">
+    @for (player of substitutes; track player.name) {
+      <article class="player"><img [src]="player.badge" [alt]="player.club + ' badge'" loading="lazy"><strong>{{ player.name }}</strong><small>{{ player.club }}</small><b class="points">{{ player.points }} pts</b></article>
+    }
+  </div>
+</section>
