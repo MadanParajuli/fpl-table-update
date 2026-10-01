@@ -6,6 +6,7 @@ export interface PitchPlayer {
   club: string;
   position: 'goalkeeper' | 'defender' | 'midfielder' | 'forward';
   badge: string;
+  photo: string;
   points: number;
   captain: boolean;
   viceCaptain: boolean;
@@ -19,8 +20,19 @@ export interface PitchPlayer {
   styleUrl: './team-pitch.css',
 })
 export class TeamPitchComponent {
+  view: 'pitch' | 'list' = 'pitch';
   @Input() starters: PitchPlayer[] = [];
   @Input() substitutes: PitchPlayer[] = [];
   @Input() gameweek = 0;
   @Input() totalPoints = 0;
+
+  showView(view: 'pitch' | 'list'): void {
+    this.view = view;
+  }
+
+  useBadgeFallback(event: Event, player: PitchPlayer): void {
+    const image = event.currentTarget as HTMLImageElement;
+    image.onerror = null;
+    image.src = player.badge;
+  }
 }
