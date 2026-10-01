@@ -243,11 +243,17 @@ export class DashboardComponent implements OnInit {
     return picks.picks.map((pick) => {
       const player = players.get(pick.element);
       const team = player ? teams.get(player.team) : undefined;
+      const badge = team
+        ? `https://resources.premierleague.com/premierleague/badges/70/t${team.code}.png`
+        : '';
       return {
         name: player?.web_name ?? `Player ${pick.element}`,
         club: team?.name ?? 'Unknown club',
         position: positions[pick.element_type] ?? 'midfielder',
-        badge: team ? `https://resources.premierleague.com/premierleague/badges/70/t${team.code}.png` : '',
+        badge,
+        photo: player?.photo
+          ? `https://resources.premierleague.com/premierleague/photos/players/110x140/p${player.photo.replace('.jpg', '')}.png`
+          : badge,
         points: (livePoints.get(pick.element)?.total_points ?? 0)
           * Math.max(1, pick.multiplier),
         captain: pick.is_captain,
