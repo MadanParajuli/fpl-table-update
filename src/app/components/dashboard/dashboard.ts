@@ -13,6 +13,7 @@ import {
   FplHistory,
   FplLeague,
   FplLiveEvent,
+  FplLiveStats,
   FplManager,
   FplManagerPicks,
   FplStanding,
@@ -227,7 +228,7 @@ export class DashboardComponent implements OnInit {
   private toSquad(
     picks: FplManagerPicks | null,
     bootstrap: BootstrapStatic | null,
-    livePoints: Map<number, { minutes: number; total_points: number }>
+    livePoints: Map<number, FplLiveStats>
   ): PitchPlayer[] {
     if (!picks || !bootstrap) return [];
 
@@ -246,6 +247,19 @@ export class DashboardComponent implements OnInit {
       const badge = team
         ? `https://resources.premierleague.com/premierleague/badges/70/t${team.code}.png`
         : '';
+      const statLine = livePoints.get(pick.element) ?? {
+        minutes: 0,
+        total_points: 0,
+        goals_scored: 0,
+        assists: 0,
+        saves: 0,
+        clean_sheets: 0,
+        goals_conceded: 0,
+        bonus: 0,
+        yellow_cards: 0,
+        red_cards: 0,
+      };
+
       return {
         name: player?.web_name ?? `Player ${pick.element}`,
         club: team?.name ?? 'Unknown club',
@@ -254,10 +268,21 @@ export class DashboardComponent implements OnInit {
         photo: player?.photo
           ? `https://resources.premierleague.com/premierleague/photos/players/110x140/p${player.photo.replace('.jpg', '')}.png`
           : badge,
-        points: (livePoints.get(pick.element)?.total_points ?? 0)
-          * Math.max(1, pick.multiplier),
+        points: (statLine.total_points ?? 0) * Math.max(1, pick.multiplier),
         captain: pick.is_captain,
         viceCaptain: pick.is_vice_captain,
+        stats: {
+          minutes: statLine.minutes ?? 0,
+          total_points: statLine.total_points ?? 0,
+          goals_scored: statLine.goals_scored ?? 0,
+          assists: statLine.assists ?? 0,
+          saves: statLine.saves ?? 0,
+          clean_sheets: statLine.clean_sheets ?? 0,
+          goals_conceded: statLine.goals_conceded ?? 0,
+          bonus: statLine.bonus ?? 0,
+          yellow_cards: statLine.yellow_cards ?? 0,
+          red_cards: statLine.red_cards ?? 0,
+        },
       };
     });
   }
@@ -332,7 +357,7 @@ export class DashboardComponent implements OnInit {
 
   private currentPoints(
     picks: FplManagerPicks | null,
-    livePoints: Map<number, { minutes: number; total_points: number }>,
+    livePoints: Map<number, FplLiveStats>,
     fallback: number
   ): number {
     if (!picks) return fallback;
@@ -348,7 +373,11 @@ export class DashboardComponent implements OnInit {
 
     if (benchBoost) {
       return picks.picks.reduce(
-        (total, pick) => total + this.pickPoints(pick, livePoints, 1),
+        (total, pick) => total + this.pickPoints(
+          pick,
+          livePoints,
+          pick.multiplier || 1
+        ),
         0
       );
     }
@@ -383,7 +412,7 @@ export class DashboardComponent implements OnInit {
 
   private played(
     pick: FplManagerPicks['picks'][number],
-    livePoints: Map<number, { minutes: number; total_points: number }>
+    livePoints: Map<number, FplLiveStats>
   ): boolean {
     return (livePoints.get(pick.element)?.minutes ?? 0) > 0;
   }
@@ -409,7 +438,7 @@ export class DashboardComponent implements OnInit {
 
   private pickPoints(
     pick: FplManagerPicks['picks'][number],
-    livePoints: Map<number, { minutes: number; total_points: number }>,
+    livePoints: Map<number, FplLiveStats>,
     multiplier: number
   ): number {
     return (livePoints.get(pick.element)?.total_points ?? 0) * multiplier;
@@ -417,11 +446,22 @@ export class DashboardComponent implements OnInit {
 
   private toLivePoints(
     live: FplLiveEvent | null
-  ): Map<number, { minutes: number; total_points: number }> {
+  ): Map<number, FplLiveStats> {
     return new Map(
       (live?.elements ?? []).map((element) => [
         element.id,
-        element.stats,
+        {
+          minutes: element.stats.minutes ?? 0,
+          total_points: element.stats.total_points ?? 0,
+          goals_scored: element.stats.goals_scored ?? 0,
+          assists: element.stats.assists ?? 0,
+          saves: element.stats.saves ?? 0,
+          clean_sheets: element.stats.clean_sheets ?? 0,
+          goals_conceded: element.stats.goals_conceded ?? 0,
+          bonus: element.stats.bonus ?? 0,
+          yellow_cards: element.stats.yellow_cards ?? 0,
+          red_cards: element.stats.red_cards ?? 0,
+        },
       ])
     );
   }

@@ -98,12 +98,22 @@ export interface FplManagerPicks {
   picks: FplPick[];
 }
 
+export interface FplLiveStats {
+  minutes: number;
+  total_points: number;
+  goals_scored?: number;
+  assists?: number;
+  saves?: number;
+  clean_sheets?: number;
+  goals_conceded?: number;
+  bonus?: number;
+  yellow_cards?: number;
+  red_cards?: number;
+}
+
 export interface FplLiveElement {
   id: number;
-  stats: {
-    minutes: number;
-    total_points: number;
-  };
+  stats: FplLiveStats;
 }
 
 export interface FplLiveEvent {

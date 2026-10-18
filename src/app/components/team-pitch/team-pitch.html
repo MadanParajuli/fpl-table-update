@@ -18,6 +18,33 @@
     </div>
   </div>
 
+  @if (selectedPlayer) {
+    <div class="player-detail-panel" aria-live="polite">
+      <div class="detail-header">
+        <div class="detail-player-info">
+          <img [src]="selectedPlayer.photo" [alt]="selectedPlayer.name" (error)="useBadgeFallback($event, selectedPlayer)" loading="lazy">
+          <div>
+            <span class="detail-club">{{ selectedPlayer.club }}</span>
+            <h3>{{ selectedPlayer.name }}</h3>
+          </div>
+        </div>
+        <div class="detail-points">
+          <span>GW points</span>
+          <strong>{{ selectedPlayer.points }}</strong>
+        </div>
+      </div>
+
+      <div class="detail-stats">
+        @for (stat of getHighlightStats(selectedPlayer); track stat.label) {
+          <div class="stat-pill">
+            <span>{{ stat.label }}</span>
+            <strong>{{ stat.value }}</strong>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
   @if (view === 'pitch') {
     <div class="pitch" aria-label="Fantasy football team formation">
       <div class="field-markings" aria-hidden="true">
@@ -31,7 +58,7 @@
           <span class="line-label">{{ position }}{{ position === 'forward' ? 's' : position === 'midfielder' ? 's' : position === 'defender' ? 's' : '' }}</span>
           @for (player of starters; track player.name) {
             @if (player.position === position) {
-              <article class="pitch-player">
+              <article class="pitch-player" [class.selected]="selectedPlayer?.name === player.name" (click)="selectPlayer(player)" tabindex="0" (keydown.enter)="selectPlayer(player)" (keydown.space)="selectPlayer(player)">
                 <div class="portrait"><img [src]="player.photo" [alt]="player.name" (error)="useBadgeFallback($event, player)" loading="lazy">@if (player.captain) { <b class="marker">C</b> } @else if (player.viceCaptain) { <b class="marker">V</b> }</div>
                 <strong>{{ player.name }}</strong>
                 <span class="points">{{ player.points }} pts</span>
@@ -45,7 +72,7 @@
     <div class="bench-heading"><div><p class="eyebrow">Matchday squad</p><h3>Substitutes</h3></div><span>Ordered by substitution priority</span></div>
     <div class="bench">
       @for (player of substitutes; track player.name; let index = $index) {
-        <article class="bench-player">
+        <article class="bench-player" [class.selected]="selectedPlayer?.name === player.name" (click)="selectPlayer(player)" tabindex="0" (keydown.enter)="selectPlayer(player)" (keydown.space)="selectPlayer(player)">
           <span class="bench-order">{{ index + 1 }}</span>
           <img [src]="player.photo" [alt]="player.name" (error)="useBadgeFallback($event, player)" loading="lazy">
           <span class="bench-details"><strong>{{ player.name }}</strong><small>{{ player.club }} · {{ player.position }}</small></span>
@@ -57,7 +84,7 @@
     <div class="list-view">
       <h3>Starting XI</h3>
       @for (player of starters; track player.name; let index = $index) {
-        <article class="list-player">
+        <article class="list-player" [class.selected]="selectedPlayer?.name === player.name" (click)="selectPlayer(player)" tabindex="0" (keydown.enter)="selectPlayer(player)" (keydown.space)="selectPlayer(player)">
           <span class="list-number">{{ index + 1 }}</span>
           <img [src]="player.photo" [alt]="player.name" (error)="useBadgeFallback($event, player)" loading="lazy">
           <span class="list-details"><strong>{{ player.name }}</strong><small>{{ player.club }} · {{ player.position }}</small></span>
@@ -67,7 +94,7 @@
       }
       <h3>Substitutes</h3>
       @for (player of substitutes; track player.name; let index = $index) {
-        <article class="list-player">
+        <article class="list-player" [class.selected]="selectedPlayer?.name === player.name" (click)="selectPlayer(player)" tabindex="0" (keydown.enter)="selectPlayer(player)" (keydown.space)="selectPlayer(player)">
           <span class="list-number">{{ index + 1 }}</span>
           <img [src]="player.photo" [alt]="player.name" (error)="useBadgeFallback($event, player)" loading="lazy">
           <span class="list-details"><strong>{{ player.name }}</strong><small>{{ player.club }} · {{ player.position }}</small></span>
